@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
-
+import 'package:flag/flag.dart';
 
 void main() => runApp(ThemeStatefulWrapper(child: MyApp()));
 
@@ -237,11 +237,31 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
+String languageToCountryCode(String languageName) {
+  switch (languageName) {
+    case 'Spanish':
+      return 'ES';
+    case 'French':
+      return 'FR';
+    case 'German':
+      return 'DE';
+    case 'Korean':
+      return 'KR';
+    default:
+      return 'US'; 
+  }
+}
+
 class LanguageSelectionScreen extends StatelessWidget {
+  final List<String> languages = [
+    'Spanish', 
+    'French', 
+    'German', 
+    'Korean',
+  ];
+
   @override
   Widget build(BuildContext context) {
-    final List<String> languages = ['Spanish', 'French', 'German', 'Korean'];
-
     return Scaffold(
       appBar: AppBar(
         title: Text("Select a Language"),
@@ -255,6 +275,7 @@ class LanguageSelectionScreen extends StatelessWidget {
         ),
         itemCount: languages.length,
         itemBuilder: (context, index) {
+          final countryCode = languageToCountryCode(languages[index]);
           return Card(
             child: InkWell(
               onTap: () {
@@ -264,8 +285,12 @@ class LanguageSelectionScreen extends StatelessWidget {
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("${languages[index]} coming soon!")));
                 }
               },
-              child: Center(
-                child: Text(languages[index], style: TextStyle(fontSize: 20)),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Flag.fromString(countryCode, height: 50, width: 80, fit: BoxFit.fill),
+                  Text(languages[index], style: TextStyle(fontSize: 20)),
+                ],
               ),
             ),
           );
