@@ -132,7 +132,7 @@ class HomeScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text("Welcome to the Language Learning App!", style: Theme.of(context).textTheme.headline5),
+            Text("Welcome to the Language Learning App!", style: Theme.of(context).textTheme.headlineSmall),
             SizedBox(height: 20),
             ElevatedButton(
               onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => LanguageSelectionScreen())),
@@ -213,23 +213,76 @@ class KoreanLanguageScreen extends StatelessWidget {
   }
 }
 
-class PracticeScreen extends StatelessWidget {
+class PracticeScreen extends StatefulWidget {
+  @override
+  _PracticeScreenState createState() => _PracticeScreenState();
+}
+
+class _PracticeScreenState extends State<PracticeScreen> {
+  List<Flashcard> flashcards = [
+    Flashcard(wordInKorean: "사과", wordInEnglish: "Apple", imagePath: "images/apple.png"),
+    Flashcard(wordInKorean: "물", wordInEnglish: "Water", imagePath: "images/water.png"),
+    Flashcard(wordInKorean: "공", wordInEnglish: "Ball", imagePath: "images/ball.png"),
+    Flashcard(wordInKorean: "책", wordInEnglish: "Book", imagePath: "images/book.png"),
+    Flashcard(wordInKorean: "바나나", wordInEnglish: "Banana", imagePath: "images/banana.png"),
+    // Add more flashcards here
+  ];
+
+  int currentIndex = 0;
+  GlobalKey<_FlashcardViewState> _flashcardKey = GlobalKey<_FlashcardViewState>();
+
+  void goToNext() {
+    setState(() {
+      if (currentIndex < flashcards.length - 1) {
+        currentIndex++;
+        _flashcardKey.currentState?.resetCard(); // Resets the card view to the front side after every previous and next flashcard.
+      }
+    });
+  }
+
+  void goToPrevious() {
+    setState(() {
+      if (currentIndex > 0) {
+        currentIndex--;
+        _flashcardKey.currentState?.resetCard(); // Resets the card view to the front side after every previous and next flashcard.
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    Flashcard currentFlashcard = flashcards[currentIndex];
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Practice'),
-      ),
-      body: Center(
-        child: FlashcardView(
-          imagePath: "images/apple.png",
-          wordInKorean: "사과",
-          wordInEnglish: "Apple",
-        ),
+      appBar: AppBar(title: Text('Practice')),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          FlashcardView(
+            key: _flashcardKey,
+            wordInKorean: currentFlashcard.wordInKorean,
+            wordInEnglish: currentFlashcard.wordInEnglish,
+            imagePath: currentFlashcard.imagePath,
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              IconButton(
+                icon: Icon(Icons.arrow_back),
+                onPressed: currentIndex > 0 ? goToPrevious : null,
+              ),
+              IconButton(
+                icon: Icon(Icons.arrow_forward),
+                onPressed: currentIndex < flashcards.length - 1 ? goToNext : null,
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
 }
+
+
 
 class PracticeQuizScreen extends StatefulWidget {
   @override
@@ -270,7 +323,6 @@ class _PracticeQuizScreenState extends State<PracticeQuizScreen> {
         _currentQuestionIndex++;
       });
     } else {
-      // Quiz finished, navigate to results screen
       Navigator.of(context).pushReplacement(MaterialPageRoute(
           builder: (_) => QuizResultsScreen(_correctAnswers, _questions.length, _resetQuiz)));
     }
@@ -317,7 +369,7 @@ class QuizResultsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text("Quiz Results"),
-        automaticallyImplyLeading: false, // Removes back button
+        automaticallyImplyLeading: false, 
       ),
       body: Center(
         child: Column(
@@ -360,64 +412,69 @@ class FlashcardView extends StatefulWidget {
   final String wordInEnglish;
   final String imagePath;
 
-  FlashcardView({required this.wordInKorean, required this.wordInEnglish, required this.imagePath});
+  FlashcardView({
+    Key? key,
+    required this.wordInKorean,
+    required this.wordInEnglish,
+    required this.imagePath,
+  }) : super(key: key);
 
   @override
   _FlashcardViewState createState() => _FlashcardViewState();
 }
 
-class _FlashcardViewState extends State<FlashcardView> with SingleTickerProviderStateMixin {
-  late Animation<double> _animation;
-  late AnimationController _controller;
+class _FlashcardViewState extends State<FlashcardView> {
   bool isFront = true;
 
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(vsync: this, duration: Duration(milliseconds: 500));
-    _animation = Tween<double>(begin: 0, end: 1).animate(_controller)
-      ..addStatusListener((status) {
-        if (status == AnimationStatus.completed) {
-          setState(() {
-            isFront = !isFront;
-          });
-          _controller.reset();
-        }
-      });
+  void resetCard() {
+    setState(() {
+      isFront = true;
+    });
   }
 
   void _flipCard() {
-    if (_controller.isAnimating) return;
-    _controller.forward();
+    setState(() {
+      isFront = !isFront;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: _flipCard,
-      child: AnimatedBuilder(
-        animation: _animation,
-        builder: (context, child) {
-          return Transform(
-            transform: Matrix4.identity()..setEntry(3, 2, 0.001)..rotateY(pi * _animation.value),
-            alignment: FractionalOffset.center,
-            child: isFront
-                ? Container(
-                    decoration: BoxDecoration(
-                      image: DecorationImage(
-                        image: AssetImage(widget.imagePath),
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  )
-                : Container(
-                    color: Colors.blue,
-                    child: Text('${widget.wordInKorean} - ${widget.wordInEnglish}', style: TextStyle(fontSize: 24, color: Colors.white)),
-                    alignment: Alignment.center,
-                  ),
-          );
-        },
+      child: AnimatedContainer(
+        duration: Duration(milliseconds: 500),
+        curve: Curves.easeInOut,
+        transform: Matrix4.identity()
+          ..setEntry(3, 2, 0.001) 
+          ..rotateY(isFront ? 0 : pi),
+        transformAlignment: Alignment.center,
+        alignment: Alignment.center,
+        width: 300,
+        height: 400,
+        decoration: BoxDecoration(
+          color: Colors.blue,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: isFront
+            ? Image.asset(widget.imagePath, fit: BoxFit.cover)
+            : Transform(
+                alignment: Alignment.center,
+                transform: Matrix4.identity()
+                  ..rotateY(pi), 
+                child: Center(
+                    child: Text('${widget.wordInKorean} - ${widget.wordInEnglish}',
+                        style: TextStyle(fontSize: 24, color: Colors.white))),
+              ),
       ),
     );
   }
+}
+
+class Flashcard {
+  final String wordInKorean;
+  final String wordInEnglish;
+  final String imagePath;
+
+  Flashcard({required this.wordInKorean, required this.wordInEnglish, required this.imagePath});
 }
