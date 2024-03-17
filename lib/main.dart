@@ -478,10 +478,10 @@ Widget build(BuildContext context) {
   final question = _questions[_currentQuestionIndex];
   return Scaffold(
     appBar: AppBar(title: Text("Korean Quiz")),
-    body: SingleChildScrollView( // Allows the content to be scrollable
-      child: Center( // Centers the child widget vertically and horizontally
+    body: SingleChildScrollView( 
+      child: Center( 
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center, // Centers the column's children vertically
+          mainAxisAlignment: MainAxisAlignment.center, 
           children: <Widget>[
             Padding(
               padding: const EdgeInsets.all(8.0),
@@ -497,7 +497,7 @@ Widget build(BuildContext context) {
                     onPressed: () => _nextQuestion(isCorrect: option == question.correctAnswer),
                     child: Text(option, style: TextStyle(fontSize: 20)),
                   ),
-                )).toList(), // Ensure to convert the iterable to a list
+                )).toList(), 
           ],
         ),
       ),
@@ -602,7 +602,7 @@ class _FlashcardViewState extends State<FlashcardView> {
         width: 300,
         height: 400,
         decoration: BoxDecoration(
-          color: Colors.blue,
+          color: Color.fromARGB(255, 255, 255, 255),
           borderRadius: BorderRadius.circular(12),
         ),
         child: isFront
@@ -613,7 +613,7 @@ class _FlashcardViewState extends State<FlashcardView> {
                   ..rotateY(pi), 
                 child: Center(
                     child: Text('${widget.wordInKorean} - ${widget.wordInEnglish}',
-                        style: TextStyle(fontSize: 24, color: Colors.white))),
+                        style: TextStyle(fontSize: 24, color: const Color.fromARGB(255, 0, 0, 0)))),
               ),
       ),
     );
