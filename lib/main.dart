@@ -1,19 +1,99 @@
 import 'package:flutter/material.dart';
 import 'dart:math';
 
-void main() {
-  runApp(MyApp());
-}
+
+void main() => runApp(ThemeStatefulWrapper(child: MyApp()));
 
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final theme = ThemeManager.of(context);
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      theme: ThemeData.light(),
+      darkTheme: ThemeData.dark(),
+      themeMode: theme.themeMode,
       home: LoginPage(),
     );
   }
 }
+
+class ThemeManager extends InheritedWidget {
+  final ThemeMode themeMode;
+  final Function(ThemeMode) onThemeChanged;
+
+  ThemeManager({
+    Key? key,
+    required this.themeMode,
+    required this.onThemeChanged,
+    required Widget child,
+  }) : super(key: key, child: child);
+
+  static ThemeManager of(BuildContext context) {
+    final ThemeManager? result = context.dependOnInheritedWidgetOfExactType<ThemeManager>();
+    assert(result != null, 'No ThemeManager found in context');
+    return result!;
+  }
+
+  @override
+  bool updateShouldNotify(ThemeManager old) => themeMode != old.themeMode;
+
+  void toggleTheme(ThemeMode mode) => onThemeChanged(mode);
+}
+
+class ThemeStatefulWrapper extends StatefulWidget {
+  final Widget child;
+
+  ThemeStatefulWrapper({required this.child});
+
+  @override
+  _ThemeStatefulWrapperState createState() => _ThemeStatefulWrapperState();
+}
+
+class _ThemeStatefulWrapperState extends State<ThemeStatefulWrapper> {
+  ThemeMode _themeMode = ThemeMode.system;
+
+  void _toggleTheme(ThemeMode mode) {
+    setState(() {
+      _themeMode = mode;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ThemeManager(
+      themeMode: _themeMode,
+      onThemeChanged: _toggleTheme,
+      child: widget.child,
+    );
+  }
+}
+
+class SettingsScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text("Settings")),
+      body: ListView(
+        children: <Widget>[
+          ListTile(
+            title: Text("Light Theme"),
+            onTap: () => ThemeManager.of(context).toggleTheme(ThemeMode.light),
+          ),
+          ListTile(
+            title: Text("Dark Theme"),
+            onTap: () => ThemeManager.of(context).toggleTheme(ThemeMode.dark),
+          ),
+          ListTile(
+            title: Text("System Default"),
+            onTap: () => ThemeManager.of(context).toggleTheme(ThemeMode.system),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 
 class LoginPage extends StatefulWidget {
   @override
@@ -84,8 +164,7 @@ class _SignupPageState extends State<SignupPage> {
   bool _passwordVisible = false;
 
   void _signup() {
-    // Placeholder for signup logic
-    Navigator.of(context).pop(); // Go back to login page after signup
+    Navigator.of(context).pop(); 
   }
 
   @override
@@ -127,7 +206,20 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Welcome")),
+      appBar: AppBar(
+        title: Text("Welcome"),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.settings),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => SettingsScreen()),
+              );
+            },
+          ),
+        ],
+      ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -225,7 +317,6 @@ class _PracticeScreenState extends State<PracticeScreen> {
     Flashcard(wordInKorean: "공", wordInEnglish: "Ball", imagePath: "images/ball.png"),
     Flashcard(wordInKorean: "책", wordInEnglish: "Book", imagePath: "images/book.png"),
     Flashcard(wordInKorean: "바나나", wordInEnglish: "Banana", imagePath: "images/banana.png"),
-    // Add more flashcards here
   ];
 
   int currentIndex = 0;
