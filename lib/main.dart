@@ -259,12 +259,15 @@ class LanguageSelectionScreen extends StatelessWidget {
     'German', 
     'Korean',
   ];
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text("Select a Language"),
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context), 
+        ),
       ),
       body: GridView.builder(
         padding: EdgeInsets.all(8),
@@ -300,6 +303,7 @@ class LanguageSelectionScreen extends StatelessWidget {
   }
 }
 
+
 class KoreanLanguageScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -311,24 +315,49 @@ class KoreanLanguageScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            ElevatedButton(
-              child: Text('Practice'),
-              onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => PracticeScreen()));
-              },
-            ),
-            ElevatedButton(
-              child: Text('Quizzes'),
-              onPressed: () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => PracticeQuizScreen()));
-              },
-            ),
+            _buildfauxNeumorphicButton(context, 'Practice', () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => PracticeScreen()));
+            }),
+            SizedBox(height: 20),
+            _buildfauxNeumorphicButton(context, 'Quizzes', () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => PracticeQuizScreen()));
+            }),
           ],
         ),
       ),
     );
   }
+
+  Widget _buildfauxNeumorphicButton(BuildContext context, String text, VoidCallback onPressed) {
+    return GestureDetector(
+      onTap: onPressed,
+      child: Container(
+        margin: EdgeInsets.all(12),
+        padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.grey[300],
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.shade500,
+              offset: Offset(4, 4),
+              blurRadius: 15,
+              spreadRadius: 1,
+            ),
+            BoxShadow(
+              color: Colors.white,
+              offset: Offset(-4, -4),
+              blurRadius: 15,
+              spreadRadius: 1,
+            ),
+          ],
+        ),
+        child: Text(text, style: TextStyle(fontSize: 18, color: Colors.black, fontWeight: FontWeight.w600)),
+      ),
+    );
+  }
 }
+
 
 class PracticeScreen extends StatefulWidget {
   @override
@@ -444,32 +473,36 @@ class _PracticeQuizScreenState extends State<PracticeQuizScreen> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final question = _questions[_currentQuestionIndex];
-    return Scaffold(
-      appBar: AppBar(title: Text("Korean Practice")),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Text(
-              'Question ${_currentQuestionIndex + 1} of ${_questions.length}: What is "${question.word}" in English?',
-              style: TextStyle(fontSize: 24),
-              textAlign: TextAlign.center,
+@override
+Widget build(BuildContext context) {
+  final question = _questions[_currentQuestionIndex];
+  return Scaffold(
+    appBar: AppBar(title: Text("Korean Quiz")),
+    body: SingleChildScrollView( // Allows the content to be scrollable
+      child: Center( // Centers the child widget vertically and horizontally
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center, // Centers the column's children vertically
+          children: <Widget>[
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                'Question ${_currentQuestionIndex + 1} of ${_questions.length}: What is "${question.word}" in English?',
+                style: TextStyle(fontSize: 24),
+                textAlign: TextAlign.center,
+              ),
             ),
-          ),
-          ...question.options.map((option) => Padding(
-                padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 60),
-                child: ElevatedButton(
-                  onPressed: () => _nextQuestion(isCorrect: option == question.correctAnswer),
-                  child: Text(option, style: TextStyle(fontSize: 20)),
-                ),
-              )),
-        ],
+            ...question.options.map((option) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 60),
+                  child: ElevatedButton(
+                    onPressed: () => _nextQuestion(isCorrect: option == question.correctAnswer),
+                    child: Text(option, style: TextStyle(fontSize: 20)),
+                  ),
+                )).toList(), // Ensure to convert the iterable to a list
+          ],
+        ),
       ),
-    );
+    ),
+  );
   }
 }
 
